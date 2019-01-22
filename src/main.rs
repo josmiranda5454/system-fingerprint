@@ -3,6 +3,7 @@ use self::PartitionSource::*;
 use sysinfo::{System, SystemExt, DiskExt};
 use sha2::{Sha256, Digest};
 use uname::uname;
+use std::process::Command;
 
 fn main() {
     // Assuming it is a Linux-based system 
@@ -26,5 +27,13 @@ fn main() {
     hasher.input(second_hash.as_bytes());
     result = format!("{:X}",hasher.result());
     println!("Second fingerprint (Disk's UUID with some uname info) {}", result);
+    
+    let output = Command::new("lshw").arg("-short").output().expect("lshw installed");
 
+    let mut hasher = Sha256::new();
+    let third_hash = format!("{}-{}-{:?}", disk_uuid, info.version, output);
+    hasher.input(third_hash.as_bytes());
+    result = format!("{:X}",hasher.result());
+    println!("Third fingerprint (Disk's UUID with some uname info and lshw) {}", result);
+    
 }
